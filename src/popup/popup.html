@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Neon Currency</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Neon Currency</h1>
+      <button id="settings-button" title="Open settings">⚙️</button>
+    </header>
+    <main>
+      <section id="convert-section">
+        <h2>Quick convert</h2>
+        <form id="convert-form">
+          <label class="field">
+            <span>Amount</span>
+            <input id="amount-input" type="number" step="0.01" min="0" required />
+          </label>
+          <label class="field">
+            <span>Source currency</span>
+            <input id="source-currency-input" type="text" maxlength="3" required />
+          </label>
+          <label class="field" id="popup-date-field">
+            <span>Rate date</span>
+            <input id="rate-date-input" type="date" />
+          </label>
+        </form>
+        <div id="quick-buttons"></div>
+      </section>
+
+      <section id="result-section" hidden>
+        <h2>Latest conversion</h2>
+        <div id="result-content"></div>
+      </section>
+
+      <section id="history-section" hidden>
+        <h2>Last context conversion</h2>
+        <div id="history-content"></div>
+      </section>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

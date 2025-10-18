@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Neon Currency Settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Neon Currency Settings</h1>
+    </header>
+    <main>
+      <form id="settings-form">
+        <section>
+          <h2>Conversion preferences</h2>
+          <label class="field">
+            <span>Main currency</span>
+            <select id="main-currency"></select>
+          </label>
+          <label class="field">
+            <span>Quick currency shortcuts</span>
+            <select id="quick-currencies" multiple size="6"></select>
+            <small>Select multiple with Ctrl/⌘ or Shift.</small>
+          </label>
+          <label class="field">
+            <span>Preferred currencies for detection</span>
+            <select id="preferred-currencies" multiple size="6"></select>
+            <small>Listed options are prioritized when detecting currency codes.</small>
+          </label>
+          <label class="field">
+            <span>Bank fee (%)</span>
+            <input id="bank-fee" type="number" step="0.01" min="0" />
+          </label>
+          <label class="checkbox">
+            <input id="allow-historical" type="checkbox" />
+            <span>Allow selecting conversion date</span>
+          </label>
+          <label class="field" id="default-date-wrapper">
+            <span>Default rate date</span>
+            <input id="default-date" type="date" />
+          </label>
+        </section>
+
+        <section>
+          <h2>Mastercard API</h2>
+          <p class="hint">
+            Configure a secure proxy to sign Mastercard requests or provide sandbox credentials.
+          </p>
+          <label class="field">
+            <span>Proxy URL</span>
+            <input id="proxy-url" type="url" placeholder="https://your-proxy.example.com/convert" />
+          </label>
+          <label class="field">
+            <span>Consumer key</span>
+            <input id="consumer-key" type="text" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Signing key (PEM)</span>
+            <textarea id="signing-key" rows="6" autocomplete="off"></textarea>
+          </label>
+          <label class="field">
+            <span>Environment</span>
+            <select id="environment">
+              <option value="sandbox">Sandbox</option>
+              <option value="production">Production</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Card currency</span>
+            <input id="card-currency" type="text" maxlength="3" />
+          </label>
+        </section>
+
+        <footer>
+          <button type="submit">Save Settings</button>
+          <span id="status"></span>
+        </footer>
+      </form>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

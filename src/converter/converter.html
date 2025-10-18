@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Neon Currency Converter</title>
+    <link rel="stylesheet" href="converter.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Neon Currency</h1>
+    </header>
+    <main>
+      <section id="conversion-section" hidden>
+        <div class="summary">
+          <p id="selection-text"></p>
+          <p id="rate-date"></p>
+        </div>
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Currency</th>
+              <th>Rate</th>
+              <th>Amount</th>
+              <th class="fee-column">Fee</th>
+              <th class="total-column">Total</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </section>
+
+      <section id="manual-section" hidden>
+        <h2>Provide details</h2>
+        <form id="manual-form">
+          <label class="field">
+            <span>Amount</span>
+            <input id="manual-amount" name="amount" type="number" step="0.01" min="0" required />
+          </label>
+          <label class="field">
+            <span>Source currency</span>
+            <input id="manual-currency" name="currency" type="text" maxlength="3" required />
+          </label>
+          <label class="field" id="date-field">
+            <span>Rate date</span>
+            <input id="manual-date" name="date" type="date" />
+          </label>
+          <button type="submit">Convert</button>
+        </form>
+      </section>
+
+      <section id="error-section" hidden>
+        <h2>Conversion failed</h2>
+        <p id="error-message"></p>
+        <button id="retry-button">Try again</button>
+      </section>
+    </main>
+    <footer>
+      <button id="open-settings">Settings</button>
+    </footer>
+    <script type="module" src="converter.js"></script>
+  </body>
+</html>
