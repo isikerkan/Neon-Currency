@@ -37,6 +37,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
   }
+  if (message?.type === "conversion:quote") {
+    handleQuote(message.payload)
+      .then((quote) => sendResponse({ ok: true, quote }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
   return false;
 });
 
@@ -112,6 +118,30 @@ async function handleManualConversion(payload) {
   };
   await upsertConversionRequest(requestId, state);
   await runConversion(requestId, state, settings);
+}
+
+// Lightweight conversion for the in-page hover tooltip: no stored request, no converter window.
+async function handleQuote(payload) {
+  const settings = await getSettings();
+  const amount = Number.parseFloat(payload?.amount);
+  const sourceCurrency = normalizeCurrencyCode(payload?.sourceCurrency);
+  if (!Number.isFinite(amount) || amount <= 0 || !sourceCurrency) {
+    throw new Error("Invalid price.");
+  }
+  const targets = deriveTargetCurrencies(settings).filter((code) => code !== sourceCurrency);
+  if (!targets.length) {
+    return { rateDate: null, bankFeePercent: settings.bankFeePercent, conversions: [] };
+  }
+
+  const response = await convertAmounts(
+    { amount, sourceCurrency, targetCurrencies: targets, rateDate: null },
+    settings
+  );
+  return {
+    rateDate: response.rateDate ?? null,
+    bankFeePercent: settings.bankFeePercent,
+    conversions: enhanceWithBankFee(sanitizeConversions(response.conversions), settings.bankFeePercent)
+  };
 }
 
 async function runConversion(requestId, requestState, settings) {

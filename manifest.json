@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Neon Currency Converter",
   "description": "Convert selected prices to Neon main currencies using the latest Mastercard exchange rates.",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "permissions": [
     "contextMenus",
     "storage",
@@ -33,6 +33,27 @@
         "*://*/*",
         "chrome://*/*"
       ]
+    },
+    {
+      "resources": [
+        "src/assets/flags/*.svg"
+      ],
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "src/content/priceHover.js"
+      ],
+      "run_at": "document_idle"
     }
   ]
 }
