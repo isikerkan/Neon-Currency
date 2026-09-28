@@ -2,40 +2,99 @@ name: Release
 
 # Runs on a pushed v* tag, or manually (Actions → Release → Run workflow):
 # the manual run tags the selected commit with v<manifest version>.
+# After the GitHub release, the zip is uploaded to the Chrome Web Store when the
+# CWS_* variables/secrets are configured (see README → Chrome Web Store).
 on:
   push:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      publish_to_store:
+        description: "Upload to the Chrome Web Store and submit for review"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+      zip: ${{ steps.build.outputs.zip }}
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Resolve tag
+        id: tag
         run: |
           manifest_tag="v$(jq -r .version manifest.json)"
           if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "${manifest_tag}" ]; then
             echo "manifest.json version ${manifest_tag} does not match tag ${GITHUB_REF_NAME}" >&2
             exit 1
           fi
-          echo "TAG=${manifest_tag}" >> "$GITHUB_ENV"
+          echo "tag=${manifest_tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Static checks
+        run: node scripts/check.mjs
+
+      - name: Unit tests
+        run: node --test tests/*.test.mjs
 
       - name: Build extension zip
-        run: |
-          mkdir -p dist
-          zip -r "dist/neon-currency-${TAG}.zip" manifest.json src README.md
+        id: build
+        run: echo "zip=$(bash scripts/build.sh)" >> "$GITHUB_OUTPUT"
 
-      - name: Create release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neon-currency-extension
+          path: ${{ steps.build.outputs.zip }}
+          if-no-files-found: error
+
+  github-release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: neon-currency-extension
+          path: dist
+
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.build.outputs.tag }}
         run: |
-          gh release create "${TAG}" "dist/neon-currency-${TAG}.zip" \
+          gh release create "${TAG}" dist/*.zip \
+            --repo "${GITHUB_REPOSITORY}" \
             --target "${GITHUB_SHA}" \
             --title "Neon Currency ${TAG}" \
             --generate-notes
+
+  chrome-web-store:
+    needs: [build, github-release]
+    if: vars.CWS_EXTENSION_ID != '' && (github.event_name == 'push' || inputs.publish_to_store)
+    runs-on: ubuntu-latest
+    environment: chrome-web-store
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: neon-currency-extension
+          path: dist
+
+      - name: Upload and submit for review
+        env:
+          CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+        run: bash scripts/publish-cws.sh dist/*.zip

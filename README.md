@@ -24,6 +24,10 @@ Neon Currency/
 │   ├── lib/                  # Shared utilities, storage helpers, Mastercard rate client
 │   ├── options/              # Extension options page
 │   └── popup/                # Browser action popup (manual conversions)
+├── tests/                    # node:test unit tests (price parser, Mastercard client)
+├── scripts/                  # check, build, Chrome Web Store upload, asset rendering
+├── store/                    # Chrome Web Store listing text and assets
+└── PRIVACY.md                # Privacy policy (required by the Chrome Web Store)
 ```
 
 ## Loading the Extension in Chrome
@@ -34,15 +38,32 @@ Neon Currency/
 4. Click **Load unpacked** and select the extracted folder (the one containing `manifest.json`).
 5. Pin the extension so its popup is always reachable.
 
-### Publishing a Release
+## CI/CD
 
-Bump `version` in `manifest.json`, merge to `main`, then push a matching tag:
+| Workflow | Trigger | Steps |
+|----------|---------|-------|
+| `ci.yml` | Pull requests, pushes to `main` | `scripts/check.mjs` (JS syntax, manifest structure, referenced files, flags) → unit tests (`tests/`) → zip build as artifact |
+| `release.yml` | Tag `v*` or manual run (*Actions → Release → Run workflow*) | Same checks → zip → GitHub release with the zip → Chrome Web Store upload + submit for review (if configured) |
 
-```bash
-git tag v0.2.0 && git push origin v0.2.0
-```
+Local equivalents (Node 22, no dependencies): `npm run check`, `npm test`, `npm run build`.
 
-`.github/workflows/release.yml` checks that the tag matches the manifest version, zips the extension and attaches it to a GitHub release. Alternatively run the *Release* workflow manually from the Actions tab; it tags the selected commit with `v<manifest version>`.
+### Releasing
+
+1. Bump `version` in `manifest.json` (the Chrome Web Store rejects re-used versions) and merge to `main`.
+2. Push a matching tag (`git tag v0.3.1 && git push origin v0.3.1`) or run the *Release* workflow manually; the manual run tags the commit with `v<manifest version>`.
+
+### Chrome Web Store
+
+The first submission is manual; afterwards `release.yml` uploads every release via the [Chrome Web Store API v2](https://developer.chrome.com/docs/webstore/using-api).
+
+1. Register a developer account at the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) (one-time fee).
+2. *New item* → upload the zip from the latest GitHub release. Fill in the listing, privacy tab and assets from [`store/LISTING.md`](store/LISTING.md); privacy policy: [`PRIVACY.md`](PRIVACY.md). Submit for review.
+3. Enable the API: Google Cloud project → enable *Chrome Web Store API* → OAuth consent screen → OAuth client (type *Desktop app*) → obtain a refresh token for scope `https://www.googleapis.com/auth/chromewebstore` ([guide](https://developer.chrome.com/docs/webstore/using-api)).
+4. GitHub → *Settings → Environments* → create `chrome-web-store` (optionally with required reviewers as manual gate) and add:
+   - Variables: `CWS_PUBLISHER_ID` (from the dashboard URL), `CWS_EXTENSION_ID` (item ID)
+   - Secrets: `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`
+
+   Store variables can also be set as repository variables; the job only runs when `CWS_EXTENSION_ID` is set.
 
 ## Configuring Settings
 
