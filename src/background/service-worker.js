@@ -1,5 +1,5 @@
 import { detectCurrency } from "../lib/currencyDetection.js";
-import { convertAmounts } from "../lib/mastercardClient.js";
+import { convertAmounts, registerMastercardHeaderRules } from "../lib/mastercardClient.js";
 import {
   getSettings,
   upsertConversionRequest,
@@ -10,6 +10,10 @@ import { createRequestId, uniqueList, normalizeCurrencyCode } from "../lib/utils
 
 const CONTEXT_MENU_ID = "neon-currency-convert";
 const CONVERTER_WINDOW_SIZE = { width: 420, height: 620 };
+
+registerMastercardHeaderRules().catch((error) => {
+  console.warn("Neon Currency: could not register Mastercard header rules", error);
+});
 
 chrome.runtime.onInstalled.addListener(() => {
   ensureContextMenu();

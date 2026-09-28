@@ -10,10 +10,7 @@ const bankFeeInput = document.getElementById("bank-fee");
 const allowHistoricalCheckbox = document.getElementById("allow-historical");
 const defaultDateWrapper = document.getElementById("default-date-wrapper");
 const defaultDateInput = document.getElementById("default-date");
-const proxyUrlInput = document.getElementById("proxy-url");
-const consumerKeyInput = document.getElementById("consumer-key");
-const signingKeyInput = document.getElementById("signing-key");
-const environmentSelect = document.getElementById("environment");
+const backgroundTabFallbackCheckbox = document.getElementById("background-tab-fallback");
 const cardCurrencyInput = document.getElementById("card-currency");
 const statusElement = document.getElementById("status");
 
@@ -56,10 +53,7 @@ function applySettings(settings) {
   if (settings.defaultRateDate) {
     defaultDateInput.value = settings.defaultRateDate;
   }
-  proxyUrlInput.value = settings.mastercard?.proxyUrl ?? "";
-  consumerKeyInput.value = settings.mastercard?.consumerKey ?? "";
-  signingKeyInput.value = settings.mastercard?.signingKey ?? "";
-  environmentSelect.value = settings.mastercard?.environment ?? "sandbox";
+  backgroundTabFallbackCheckbox.checked = settings.mastercard?.backgroundTabFallback !== false;
   cardCurrencyInput.value = settings.mastercard?.cardCurrency ?? "";
   toggleDefaultDate();
 }
@@ -84,10 +78,7 @@ async function onSubmit(event) {
     allowHistoricalRates: allowHistoricalCheckbox.checked,
     defaultRateDate: allowHistoricalCheckbox.checked ? defaultDateInput.value || null : null,
     mastercard: {
-      proxyUrl: proxyUrlInput.value.trim(),
-      consumerKey: consumerKeyInput.value.trim(),
-      signingKey: signingKeyInput.value.trim(),
-      environment: environmentSelect.value,
+      backgroundTabFallback: backgroundTabFallbackCheckbox.checked,
       cardCurrency: normalizeCurrencyCode(cardCurrencyInput.value) || defaults.mastercard.cardCurrency
     }
   };
