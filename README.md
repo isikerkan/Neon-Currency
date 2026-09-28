@@ -25,10 +25,21 @@ Neon Currency/
 
 ## Loading the Extension in Chrome
 
-1. Open Chrome and go to `chrome://extensions`.
-2. Enable **Developer mode** (top right toggle).
-3. Click **Load unpacked** and select the `Neon Currency` folder inside this repository (`c:\Users\erkan\Downloads\Code\neoncurrency\Neon Currency`).
-4. Pin the extension so its popup is always reachable.
+1. Download `neon-currency-vX.Y.Z.zip` from the [latest release](https://github.com/isikerkan/Neon-Currency/releases/latest) and extract it (or clone this repository).
+2. Open Chrome and go to `chrome://extensions`.
+3. Enable **Developer mode** (top right toggle).
+4. Click **Load unpacked** and select the extracted folder (the one containing `manifest.json`).
+5. Pin the extension so its popup is always reachable.
+
+### Publishing a Release
+
+Bump `version` in `manifest.json`, merge to `main`, then push a matching tag:
+
+```bash
+git tag v0.2.0 && git push origin v0.2.0
+```
+
+`.github/workflows/release.yml` checks that the tag matches the manifest version, zips the extension and attaches it to a GitHub release.
 
 ## Configuring Settings
 
