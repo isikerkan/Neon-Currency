@@ -1,8 +1,8 @@
-# Privacy Policy – Neon Currency Converter
+# Privacy Policy – Card Currency Converter
 
 _Last updated: 2026-09-28_
 
-Neon Currency Converter ("the extension") converts prices shown on websites into your chosen currencies using Mastercard exchange rates. It is designed to work without collecting personal data.
+Card Currency Converter ("the extension") converts prices shown on websites into your chosen currencies using Mastercard exchange rates. It is designed to work without collecting personal data.
 
 ## What the extension processes
 

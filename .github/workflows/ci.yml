@@ -30,6 +30,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: neon-currency-extension
+          name: card-currency-extension
           path: ${{ steps.build.outputs.zip }}
           if-no-files-found: error

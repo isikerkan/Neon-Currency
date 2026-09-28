@@ -1,9 +1,9 @@
 {
-  "name": "neon-currency",
+  "name": "card-currency-converter",
   "version": "0.0.0-see-manifest",
   "private": true,
   "type": "module",
-  "description": "Development scripts for the Neon Currency Chrome extension. The extension itself has no dependencies.",
+  "description": "Development scripts for the Card Currency Converter Chrome extension. The extension itself has no dependencies.",
   "scripts": {
     "check": "node scripts/check.mjs",
     "test": "node --test tests/*.test.mjs",

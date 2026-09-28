@@ -4,7 +4,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 version=$(node -p "require('./manifest.json').version")
-out="dist/neon-currency-v${version}.zip"
+out="dist/card-currency-converter-v${version}.zip"
 
 rm -rf dist
 mkdir -p dist

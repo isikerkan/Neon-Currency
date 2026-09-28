@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Neon Currency Converter",
-  "description": "Convert selected prices to Neon main currencies using the latest Mastercard exchange rates.",
-  "version": "0.3.0",
+  "name": "Card Currency Converter",
+  "description": "Hover any price to see it in your card currency, using daily Mastercard exchange rates and your bank fee.",
+  "version": "0.3.1",
   "icons": {
     "16": "src/assets/icons/icon-16.png",
     "32": "src/assets/icons/icon-32.png",
@@ -24,7 +24,7 @@
   },
   "action": {
     "default_popup": "src/popup/popup.html",
-    "default_title": "Neon Currency",
+    "default_title": "Card Currency Converter",
     "default_icon": {
       "16": "src/assets/icons/icon-16.png",
       "32": "src/assets/icons/icon-32.png"

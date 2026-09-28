@@ -16,7 +16,7 @@ Regenerate: `node scripts/render-icons.mjs`, `PW_EXPERIMENTAL_SERVICE_WORKER_NET
 **Language:** English (add German below as second locale if desired)
 
 **Summary (≤ 132 chars, from manifest):**
-Convert selected prices to Neon main currencies using the latest Mastercard exchange rates.
+Hover any price to see it in your card currency, using daily Mastercard exchange rates and your bank fee.
 
 **Description (EN):**
 
@@ -25,12 +25,12 @@ Hover any price on any website and instantly see what it costs in your card curr
 • Floating price card: move the mouse over a price like $249.99, €129,00 or CHF 29.– and a small card shows the amount in your main and favourite currencies, with country flags.
 • Mastercard rates: uses the same daily rates Mastercard applies to card payments, including the rate date.
 • Your bank fee: add your card's foreign-currency fee (e.g. 1.5 %) and see the real amount you will be charged.
-• Right-click conversion: select any text containing a price and choose "Convert to Neon price" for a detailed breakdown.
+• Right-click conversion: select any text containing a price and choose "Convert price to card currency" for a detailed breakdown.
 • Popup converter: quick manual conversions with one-click currency buttons.
 • Smart detection: recognises symbols and ISO codes, 1,234.56 / 1.234,56 / 1'234.50 formats, and resolves $ or kr by the site's country.
 • Private by design: no tracking, no analytics; only the currency pair is sent to Mastercard, never the amount or the page.
 
-Not affiliated with Mastercard or Neon Switzerland AG.
+Not affiliated with or endorsed by Mastercard.
 
 **Description (DE):**
 
@@ -43,7 +43,7 @@ Fahre über einen Preis auf einer beliebigen Website und sieh sofort, was er in 
 • Erkennt Symbole, ISO-Codes und Formate wie 1'234.50 oder 1.234,56
 • Kein Tracking; an Mastercard geht nur das Währungspaar, nie der Betrag oder die Seite
 
-Nicht mit Mastercard oder Neon Switzerland AG verbunden.
+Nicht mit Mastercard verbunden oder von Mastercard unterstützt.
 
 ## Privacy practices tab
 
@@ -54,7 +54,7 @@ Show prices found on websites converted into the user's chosen currencies using 
 
 | Permission | Justification |
 |------------|---------------|
-| `contextMenus` | Adds "Convert to Neon price" to the right-click menu for selected text. |
+| `contextMenus` | Adds "Convert price to card currency" to the right-click menu for selected text. |
 | `storage` | Stores the user's currency settings, recent conversions and cached exchange rates. |
 | `scripting` | Runs the exchange-rate request inside the Mastercard converter page when Mastercard blocks the direct request. Only injected into www.mastercard.com. |
 | `declarativeNetRequestWithHostAccess` | Sets the Referer/Origin headers of the extension's own exchange-rate requests to www.mastercard.com so they are accepted. No other requests are modified. |

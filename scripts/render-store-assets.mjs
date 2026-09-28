@@ -9,7 +9,7 @@ import os from "node:os";
 import path from "node:path";
 
 const REPO = new URL("..", import.meta.url).pathname.replace(/\/$/, "");
-const PROFILE = fs.mkdtempSync(path.join(os.tmpdir(), "neon-currency-shots-"));
+const PROFILE = fs.mkdtempSync(path.join(os.tmpdir(), "card-currency-shots-"));
 const server = http.createServer((q, r) => { r.setHeader("content-type","text/html"); r.end(fs.readFileSync(`${REPO}/store/demo-shop.html`)); }).listen(8766);
 const ctx = await chromium.launchPersistentContext(PROFILE, {
   headless: true, executablePath: process.env.CHROMIUM_PATH || undefined,
@@ -46,7 +46,7 @@ const tile = await ctx.newPage();
 await tile.setViewportSize({ width: 440, height: 280 });
 const icon = fs.readFileSync(`${REPO}/store/icon.svg`, "utf8").replace("<svg ", '<svg style="width:128px;height:128px" ');
 await tile.setContent(`<html><body style="margin:0;width:440px;height:280px;display:flex;align-items:center;gap:8px;padding:0 24px;box-sizing:border-box;background:radial-gradient(circle at 20% 30%,#1c2440,#0b0f1c);font-family:system-ui,Segoe UI,Roboto,sans-serif;color:#e8f1ff">
-${icon}<div><div style="font-size:30px;font-weight:800;letter-spacing:-.5px;background:linear-gradient(90deg,#22d3ee,#e879f9);-webkit-background-clip:text;color:transparent">Neon Currency</div>
+${icon}<div><div style="font-size:30px;font-weight:800;letter-spacing:-.5px;background:linear-gradient(90deg,#22d3ee,#e879f9);-webkit-background-clip:text;color:transparent">Card Currency</div>
 <div style="font-size:15px;color:#9fb2d6;margin-top:6px;line-height:1.35">Hover any price.<br>See it in your card currency.</div></div></body></html>`);
 await tile.screenshot({ path: `${REPO}/store/promo-tile-440x280.png` });
 await ctx.close();
