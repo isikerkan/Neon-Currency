@@ -42,28 +42,15 @@
         </section>
 
         <section>
-          <h2>Mastercard API</h2>
+          <h2>Mastercard rates</h2>
           <p class="hint">
-            Configure a secure proxy to sign Mastercard requests or provide sandbox credentials.
+            Rates are read from the public endpoint behind Mastercard's currency converter page.
+            No API key is required. If Mastercard blocks the direct request, the converter page
+            is opened in a minimized window and the rate is requested from there.
           </p>
-          <label class="field">
-            <span>Proxy URL</span>
-            <input id="proxy-url" type="url" placeholder="https://your-proxy.example.com/convert" />
-          </label>
-          <label class="field">
-            <span>Consumer key</span>
-            <input id="consumer-key" type="text" autocomplete="off" />
-          </label>
-          <label class="field">
-            <span>Signing key (PEM)</span>
-            <textarea id="signing-key" rows="6" autocomplete="off"></textarea>
-          </label>
-          <label class="field">
-            <span>Environment</span>
-            <select id="environment">
-              <option value="sandbox">Sandbox</option>
-              <option value="production">Production</option>
-            </select>
+          <label class="checkbox">
+            <input id="background-tab-fallback" type="checkbox" />
+            <span>Use Mastercard page in background if the direct request is blocked</span>
           </label>
           <label class="field">
             <span>Card currency</span>

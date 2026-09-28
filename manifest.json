@@ -1,16 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Neon Currency Converter",
-  "description": "Convert selected prices to Neon main currencies using Mastercard exchange rates.",
-  "version": "0.1.0",
+  "description": "Convert selected prices to Neon main currencies using the latest Mastercard exchange rates.",
+  "version": "0.2.0",
   "permissions": [
     "contextMenus",
     "storage",
-    "notifications"
+    "notifications",
+    "scripting",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
-    "https://sandbox.api.mastercard.com/*",
-    "https://api.mastercard.com/*"
+    "https://www.mastercard.com/*"
   ],
   "background": {
     "service_worker": "src/background/service-worker.js",

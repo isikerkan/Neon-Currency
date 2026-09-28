@@ -1,12 +1,12 @@
 # Neon Currency Converter Extension
 
-Neon Currency is a Chrome extension that helps you translate prices you see online into the exchange rate that Neon (Swiss banking app) would apply. Select an amount on any web page, right-click, and the extension will fetch the latest Mastercard FX rates (through your configured proxy or credentials) and apply your bank fee so you know the estimated amount you will be charged.
+Neon Currency is a Chrome extension that helps you translate prices you see online into the exchange rate that Neon (Swiss banking app) would apply. Select an amount on any web page, right-click, and the extension will fetch the latest Mastercard FX rates (no API key required) and apply your bank fee so you know the estimated amount you will be charged.
 
 ## Core Features
 - Context menu action that parses selected prices and detects the currency automatically.
 - Manual fallback flow when the currency cannot be determined or you want to override the amount/date.
 - Popup for ad-hoc conversions with quick-access target currencies you configure.
-- Options page to define your main currency, shortcut currencies, preferred detection currencies, bank fee, and Mastercard API connection settings.
+- Options page to define your main currency, shortcut currencies, preferred detection currencies, bank fee, card currency, and the background-page fallback.
 - Storage-backed settings and request history so your defaults sync with your Chrome profile.
 
 ## Project Structure
@@ -18,7 +18,7 @@ Neon Currency/
 │   ├── background/           # Service worker: context menu + conversion orchestration
 │   ├── converter/            # Popup window launched on context conversions
 │   ├── data/                 # Static currency metadata
-│   ├── lib/                  # Shared utilities, storage helpers, Mastercard client
+│   ├── lib/                  # Shared utilities, storage helpers, Mastercard rate client
 │   ├── options/              # Extension options page
 │   └── popup/                # Browser action popup (manual conversions)
 ```
@@ -40,50 +40,37 @@ Open the extension popup and click the ⚙️ button or visit the options page d
 - **Bank fee (%)**: a surcharge applied to converted amounts to simulate Neon’s markup.
 - **Allow selecting conversion date**: toggles historical rate selection in the popup/converter interface.
 
-### Mastercard API Connectivity
+### Mastercard Rates (no API key)
 
-The extension expects a secure endpoint that returns Mastercard FX data. Because storing private keys inside a packaged extension is unsafe, the default approach is to route requests through a proxy that you host.
+Mastercard does not hand out keys for its Currency Conversion API to individuals. The extension therefore uses the same public endpoint that Mastercard's own [currency converter page](https://www.mastercard.com/ch/de/pers%C3%B6nlich/get-support/currency-exchange-rate-converter.html) calls:
 
-1. **Proxy URL** – point this to your service that signs Mastercard requests and forwards them to the official API (for example, a small HTTPS function).  
-2. **Consumer key & Signing key** – optional fields if you decide to let the extension call Mastercard directly. Only use this in trusted environments; keep the PEM in PKCS#8 format.
-3. **Environment** – `sandbox` or `production`.
-4. **Card currency** – the billing currency of your Neon card; used to pre-fill the popup.
-
-The extension sends a JSON payload to the proxy:
-
-```json
-{
-  "amount": 120.5,
-  "sourceCurrency": "USD",
-  "targetCurrencies": ["CHF", "EUR"],
-  "rateDate": "2025-01-05"
-}
+```
+GET https://www.mastercard.com/marketingservices/public/mccom-services/currency-conversions/conversion-rates
+    ?exchange_date=YYYY-MM-DD
+    &transaction_currency=USD
+    &cardholder_billing_currency=CHF
+    &bank_fee=0
+    &transaction_amount=1
 ```
 
-Your proxy should respond with:
+Response (relevant fields):
 
 ```json
-{
-  "rateDate": "2025-01-05",
-  "metadata": {
-    "source": "mastercard"
-  },
-  "conversions": [
-    {
-      "currency": "CHF",
-      "rate": 0.86432,
-      "convertedAmount": 104.87
-    },
-    {
-      "currency": "EUR",
-      "rate": 0.91211,
-      "convertedAmount": 109.8
-    }
-  ]
-}
+{ "data": { "conversionRate": 0.8012, "crdhldBillAmt": 0.8012, "fxDate": "2026-09-27", "transCurr": "USD", "crdhldBillCurr": "CHF" } }
 ```
 
-The service worker will apply your configured bank fee and surface the totals in the UI.
+The endpoint sits behind Akamai bot protection, so the service worker fetches it in two stages (`src/lib/mastercardClient.js`):
+
+1. **Direct request** from the service worker. `host_permissions` bypass CORS; a `declarativeNetRequest` session rule sets `Referer`/`Origin` to the converter page. Since the request comes from your real Chrome (browser TLS fingerprint, residential IP, Mastercard cookies), this usually passes.
+2. **Background page fallback** – if Akamai answers with 403 or an HTML challenge, the converter page is opened in a minimized window, the same request runs inside that page (`chrome.scripting.executeScript`, `world: "MAIN"`, same origin and cookies), and the window is closed afterwards. One window serves all target currencies of a conversion. Can be disabled in the options.
+
+Additional behaviour:
+
+- **Latest rate**: without an explicit date the client tries today and walks back up to 5 days until Mastercard returns a published rate. The date actually used is shown in the UI.
+- **Cache**: rates are cached in `chrome.storage.local` (`fxRateCache`) – the latest rate per pair for 30 minutes, dated rates indefinitely (max. 200 entries).
+- **Conversion** happens locally (`amount × conversionRate`); the bank fee from the options is applied afterwards by the service worker.
+
+> This is an undocumented endpoint of Mastercard's website, not an official API. Parameters or protection can change without notice; check the endpoint in the DevTools network tab of the converter page if requests start failing. Intended for personal use.
 
 ## Usage Flow
 
@@ -98,6 +85,6 @@ The service worker will apply your configured bank fee and surface the totals in
 - No external dependencies are required; if you need advanced UI components consider adding a build step or using Web Components.
 
 ## Next Steps
-- Implement the direct Mastercard signing flow if you prefer to avoid a proxy.
+- Optional fallback to a second rate source (e.g. ECB) when Mastercard is unreachable.
 - Add automated tests (e.g., using Puppeteer) to verify context-menu flows.
 - Expand the currency list or source it from a maintained API if you need full ISO-4217 coverage.

@@ -22,11 +22,8 @@ export function getDefaultSettings() {
     allowHistoricalRates: false,
     defaultRateDate: null,
     mastercard: {
-      environment: "sandbox",
-      consumerKey: "",
-      signingKey: "",
-      proxyUrl: "",
-      cardCurrency: "CHF"
+      cardCurrency: "CHF",
+      backgroundTabFallback: true
     }
   };
 }
@@ -74,8 +71,11 @@ function mergeSettings(partial) {
       ? partial.preferredCurrencies
       : defaults.preferredCurrencies,
     mastercard: {
-      ...defaults.mastercard,
-      ...((partial && partial.mastercard) || {})
+      cardCurrency: partial?.mastercard?.cardCurrency || defaults.mastercard.cardCurrency,
+      backgroundTabFallback:
+        typeof partial?.mastercard?.backgroundTabFallback === "boolean"
+          ? partial.mastercard.backgroundTabFallback
+          : defaults.mastercard.backgroundTabFallback
     }
   };
 }
