@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Chrome Web Store guideline: 96x96 artwork centred in a 128x128 canvas. -->
+  <defs>
+    <linearGradient id="neon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="1" stop-color="#e879f9"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="96" height="96" rx="24" fill="#0f1424"/>
+  <rect x="16.75" y="16.75" width="94.5" height="94.5" rx="23.25" fill="none" stroke="url(#neon)" stroke-opacity="0.55" stroke-width="1.5"/>
+  <!-- exchange arrows -->
+  <path d="M40 54 H82" stroke="#22d3ee" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <path d="M74 43 L87 54 L74 65" stroke="#22d3ee" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M88 76 H46" stroke="#e879f9" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <path d="M54 65 L41 76 L54 87" stroke="#e879f9" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>

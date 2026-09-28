@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Static checks (syntax, manifest, referenced files)
+        run: node scripts/check.mjs
+
+      - name: Unit tests
+        run: node --test tests/*.test.mjs
+
+      - name: Build extension zip
+        id: build
+        run: echo "zip=$(bash scripts/build.sh)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neon-currency-extension
+          path: ${{ steps.build.outputs.zip }}
+          if-no-files-found: error
