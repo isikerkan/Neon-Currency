@@ -39,7 +39,7 @@ Bump `version` in `manifest.json`, merge to `main`, then push a matching tag:
 git tag v0.2.0 && git push origin v0.2.0
 ```
 
-`.github/workflows/release.yml` checks that the tag matches the manifest version, zips the extension and attaches it to a GitHub release.
+`.github/workflows/release.yml` checks that the tag matches the manifest version, zips the extension and attaches it to a GitHub release. Alternatively run the *Release* workflow manually from the Actions tab; it tags the selected commit with `v<manifest version>`.
 
 ## Configuring Settings
 
