@@ -3,6 +3,7 @@
 Neon Currency is a Chrome extension that helps you translate prices you see online into the exchange rate that Neon (Swiss banking app) would apply. Select an amount on any web page, right-click, and the extension will fetch the latest Mastercard FX rates (no API key required) and apply your bank fee so you know the estimated amount you will be charged.
 
 ## Core Features
+- Floating price tooltip (like Augmented Steam): hover a price on any site to see it converted into your main and quick currencies, with country flags and bank fee.
 - Context menu action that parses selected prices and detects the currency automatically.
 - Manual fallback flow when the currency cannot be determined or you want to override the amount/date.
 - Popup for ad-hoc conversions with quick-access target currencies you configure.
@@ -15,7 +16,9 @@ Neon Currency is a Chrome extension that helps you translate prices you see onli
 Neon Currency/
 ├── manifest.json
 ├── src/
+│   ├── assets/flags/         # Country flag SVGs (flag-icons, MIT)
 │   ├── background/           # Service worker: context menu + conversion orchestration
+│   ├── content/              # Content script: price detection + hover tooltip
 │   ├── converter/            # Popup window launched on context conversions
 │   ├── data/                 # Static currency metadata
 │   ├── lib/                  # Shared utilities, storage helpers, Mastercard rate client
@@ -85,6 +88,7 @@ Additional behaviour:
 
 ## Usage Flow
 
+- **Hover tooltip**: move the mouse over a price (e.g. `$19.99`, `CHF 29.–`, `1 299,00 zł`). After ~350 ms a floating card shows the amount converted into your main and quick currencies, incl. bank fee and rate date. Hover a row for the exchange rate; `Esc` or scrolling closes it. Ambiguous symbols are resolved by the site's domain (`$` on `.ca` → CAD, `kr` on `.no` → NOK). Can be disabled in the options.
 - **Context menu conversion**: highlight a price (e.g., `€149.95`), right-click, and choose *Convert to Neon price*. A mini window opens showing the result. If the extension cannot determine the currency, you will be prompted to specify it manually.
 - **Popup conversion**: click the extension icon, type an amount and its currency, then hit one of your quick currency buttons. Results are shown instantly inside the popup and the last conversion is persisted for reference.
 

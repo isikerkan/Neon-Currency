@@ -21,6 +21,9 @@ export function getDefaultSettings() {
     bankFeePercent: 0,
     allowHistoricalRates: false,
     defaultRateDate: null,
+    hoverTooltip: {
+      enabled: true
+    },
     mastercard: {
       cardCurrency: "CHF",
       backgroundTabFallback: true
@@ -70,6 +73,9 @@ function mergeSettings(partial) {
     preferredCurrencies: Array.isArray(partial?.preferredCurrencies)
       ? partial.preferredCurrencies
       : defaults.preferredCurrencies,
+    hoverTooltip: {
+      enabled: partial?.hoverTooltip?.enabled !== false
+    },
     mastercard: {
       cardCurrency: partial?.mastercard?.cardCurrency || defaults.mastercard.cardCurrency,
       backgroundTabFallback:

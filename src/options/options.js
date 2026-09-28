@@ -10,6 +10,7 @@ const bankFeeInput = document.getElementById("bank-fee");
 const allowHistoricalCheckbox = document.getElementById("allow-historical");
 const defaultDateWrapper = document.getElementById("default-date-wrapper");
 const defaultDateInput = document.getElementById("default-date");
+const hoverTooltipCheckbox = document.getElementById("hover-tooltip");
 const backgroundTabFallbackCheckbox = document.getElementById("background-tab-fallback");
 const cardCurrencyInput = document.getElementById("card-currency");
 const statusElement = document.getElementById("status");
@@ -53,6 +54,7 @@ function applySettings(settings) {
   if (settings.defaultRateDate) {
     defaultDateInput.value = settings.defaultRateDate;
   }
+  hoverTooltipCheckbox.checked = settings.hoverTooltip?.enabled !== false;
   backgroundTabFallbackCheckbox.checked = settings.mastercard?.backgroundTabFallback !== false;
   cardCurrencyInput.value = settings.mastercard?.cardCurrency ?? "";
   toggleDefaultDate();
@@ -77,6 +79,9 @@ async function onSubmit(event) {
     bankFeePercent: Number.isFinite(bankFee) && bankFee >= 0 ? bankFee : defaults.bankFeePercent,
     allowHistoricalRates: allowHistoricalCheckbox.checked,
     defaultRateDate: allowHistoricalCheckbox.checked ? defaultDateInput.value || null : null,
+    hoverTooltip: {
+      enabled: hoverTooltipCheckbox.checked
+    },
     mastercard: {
       backgroundTabFallback: backgroundTabFallbackCheckbox.checked,
       cardCurrency: normalizeCurrencyCode(cardCurrencyInput.value) || defaults.mastercard.cardCurrency
