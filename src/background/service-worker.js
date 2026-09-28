@@ -8,11 +8,11 @@ import {
 } from "../lib/storage.js";
 import { createRequestId, uniqueList, normalizeCurrencyCode } from "../lib/utils.js";
 
-const CONTEXT_MENU_ID = "neon-currency-convert";
+const CONTEXT_MENU_ID = "card-currency-convert";
 const CONVERTER_WINDOW_SIZE = { width: 420, height: 620 };
 
 registerMastercardHeaderRules().catch((error) => {
-  console.warn("Neon Currency: could not register Mastercard header rules", error);
+  console.warn("Card Currency Converter: could not register Mastercard header rules", error);
 });
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -54,7 +54,7 @@ async function ensureContextMenu() {
   }
   chrome.contextMenus.create({
     id: CONTEXT_MENU_ID,
-    title: "Convert to Neon price",
+    title: "Convert price to card currency",
     contexts: ["selection"]
   });
 }

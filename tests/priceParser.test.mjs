@@ -6,7 +6,7 @@ import vm from "node:vm";
 const source = readFileSync(new URL("../src/content/priceParser.js", import.meta.url), "utf8");
 const context = vm.createContext({});
 vm.runInContext(source, context);
-const { parsePrice, parseAmount } = context.NeonCurrencyPriceParser;
+const { parsePrice, parseAmount } = context.CardCurrencyPriceParser;
 
 const price = (text, tld) => {
   const result = parsePrice(text, tld);

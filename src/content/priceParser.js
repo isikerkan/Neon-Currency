@@ -1,5 +1,5 @@
 // Price detection shared by the hover tooltip (content script) and the unit tests.
-// Classic script: exposes globalThis.NeonCurrencyPriceParser.
+// Classic script: exposes globalThis.CardCurrencyPriceParser.
 (() => {
   const CURRENCY_FLAGS = {
     AED: "ae", AUD: "au", BRL: "br", CAD: "ca", CHF: "ch", CNY: "cn", CZK: "cz", DKK: "dk",
@@ -80,5 +80,5 @@
     return Number.parseFloat(normalized);
   }
 
-  globalThis.NeonCurrencyPriceParser = { CURRENCY_FLAGS, parsePrice, parseAmount, resolveCurrency };
+  globalThis.CardCurrencyPriceParser = { CURRENCY_FLAGS, parsePrice, parseAmount, resolveCurrency };
 })();

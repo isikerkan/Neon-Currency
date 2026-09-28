@@ -2,10 +2,10 @@
 // (Mastercard rate + bank fee) for the main and quick currencies, with country flags.
 // Classic content script (no ES modules), so everything it needs lives in this file.
 (() => {
-  if (window.__neonCurrencyHover) {
+  if (window.__cardCurrencyHover) {
     return;
   }
-  window.__neonCurrencyHover = true;
+  window.__cardCurrencyHover = true;
 
   const HOVER_DELAY_MS = 350;
   const HIDE_DELAY_MS = 250;
@@ -49,7 +49,7 @@
     .footer { margin-top: 6px; font-size: 11px; color: #7d8fb3; }
   `;
 
-  const { CURRENCY_FLAGS, parsePrice: parsePriceText } = globalThis.NeonCurrencyPriceParser;
+  const { CURRENCY_FLAGS, parsePrice: parsePriceText } = globalThis.CardCurrencyPriceParser;
   const tld = location.hostname.split(".").pop();
   const quoteCache = new Map();
 
@@ -203,7 +203,7 @@
   }
 
   function createTooltip() {
-    const host = document.createElement("neon-currency-tooltip");
+    const host = document.createElement("card-currency-tooltip");
     host.style.cssText = "all: initial; position: fixed; z-index: 2147483647; top: 0; left: 0;";
     const shadow = host.attachShadow({ mode: "closed" });
     const style = document.createElement("style");

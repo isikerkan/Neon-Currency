@@ -62,7 +62,7 @@ if (manifest) {
 // 3. Every currency the tooltip knows has a bundled flag.
 const parserContext = vm.createContext({});
 vm.runInContext(readFileSync(join(root, "src/content/priceParser.js"), "utf8"), parserContext);
-for (const [currency, country] of Object.entries(parserContext.NeonCurrencyPriceParser.CURRENCY_FLAGS)) {
+for (const [currency, country] of Object.entries(parserContext.CardCurrencyPriceParser.CURRENCY_FLAGS)) {
   requireFile(`src/assets/flags/${country}.svg`, `flag for ${currency}`);
 }
 

@@ -1,6 +1,6 @@
-# Neon Currency Converter Extension
+# Card Currency Converter
 
-Neon Currency is a Chrome extension that helps you translate prices you see online into the exchange rate that Neon (Swiss banking app) would apply. Select an amount on any web page, right-click, and the extension will fetch the latest Mastercard FX rates (no API key required) and apply your bank fee so you know the estimated amount you will be charged.
+Card Currency Converter is a Chrome extension that shows prices you see online in your card currency, using the Mastercard exchange rate applied by Mastercard card issuers such as Neon. Select an amount on any web page, right-click, and the extension will fetch the latest Mastercard FX rates (no API key required) and apply your bank fee so you know the estimated amount you will be charged.
 
 ## Core Features
 - Floating price tooltip (like Augmented Steam): hover a price on any site to see it converted into your main and quick currencies, with country flags and bank fee.
@@ -13,7 +13,7 @@ Neon Currency is a Chrome extension that helps you translate prices you see onli
 ## Project Structure
 
 ```
-Neon Currency/
+Card Currency Converter/
 ├── manifest.json
 ├── src/
 │   ├── assets/flags/         # Country flag SVGs (flag-icons, MIT)
@@ -32,7 +32,7 @@ Neon Currency/
 
 ## Loading the Extension in Chrome
 
-1. Download `neon-currency-vX.Y.Z.zip` from the [latest release](https://github.com/isikerkan/Neon-Currency/releases/latest) and extract it (or clone this repository).
+1. Download `card-currency-converter-vX.Y.Z.zip` from the [latest release](https://github.com/isikerkan/Neon-Currency/releases/latest) and extract it (or clone this repository).
 2. Open Chrome and go to `chrome://extensions`.
 3. Enable **Developer mode** (top right toggle).
 4. Click **Load unpacked** and select the extracted folder (the one containing `manifest.json`).
@@ -72,7 +72,7 @@ Open the extension popup and click the ⚙️ button or visit the options page d
 - **Main currency**: the default currency you want amounts converted into (CHF by default).
 - **Quick currency shortcuts**: currencies that appear as buttons inside the popup for one-click conversions.
 - **Preferred currencies**: prioritized list used when parsing selections that contain ambiguous currency codes.
-- **Bank fee (%)**: a surcharge applied to converted amounts to simulate Neon’s markup.
+- **Bank fee (%)**: a surcharge applied to converted amounts to simulate your card issuer’s foreign-currency markup.
 - **Allow selecting conversion date**: toggles historical rate selection in the popup/converter interface.
 
 ### Mastercard Rates (no API key)
@@ -110,7 +110,7 @@ Additional behaviour:
 ## Usage Flow
 
 - **Hover tooltip**: move the mouse over a price (e.g. `$19.99`, `CHF 29.–`, `1 299,00 zł`). After ~350 ms a floating card shows the amount converted into your main and quick currencies, incl. bank fee and rate date. Hover a row for the exchange rate; `Esc` or scrolling closes it. Ambiguous symbols are resolved by the site's domain (`$` on `.ca` → CAD, `kr` on `.no` → NOK). Can be disabled in the options.
-- **Context menu conversion**: highlight a price (e.g., `€149.95`), right-click, and choose *Convert to Neon price*. A mini window opens showing the result. If the extension cannot determine the currency, you will be prompted to specify it manually.
+- **Context menu conversion**: highlight a price (e.g., `€149.95`), right-click, and choose *Convert price to card currency*. A mini window opens showing the result. If the extension cannot determine the currency, you will be prompted to specify it manually.
 - **Popup conversion**: click the extension icon, type an amount and its currency, then hit one of your quick currency buttons. Results are shown instantly inside the popup and the last conversion is persisted for reference.
 
 ## Development Notes
