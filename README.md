@@ -1,126 +1,67 @@
 # Card Currency Converter
 
-Card Currency Converter is a Chrome extension that shows prices you see online in your card currency, using the Mastercard exchange rate applied by Mastercard card issuers such as Neon. Select an amount on any web page, right-click, and the extension will fetch the latest Mastercard FX rates (no API key required) and apply your bank fee so you know the estimated amount you will be charged.
+Chrome extension that shows prices on any website in your card currency, using the daily Mastercard exchange rate and your bank's foreign-currency fee.
 
-## Core Features
-- Floating price tooltip (like Augmented Steam): hover a price on any site to see it converted into your main and quick currencies, with country flags and bank fee.
-- Context menu action that parses selected prices and detects the currency automatically.
-- Manual fallback flow when the currency cannot be determined or you want to override the amount/date.
-- Popup for ad-hoc conversions with quick-access target currencies you configure.
-- Options page to define your main currency, shortcut currencies, preferred detection currencies, bank fee, card currency, and the background-page fallback.
-- Storage-backed settings and request history so your defaults sync with your Chrome profile.
+![Price tooltip](store/screenshot-1-tooltip.png)
 
-## Project Structure
+## Installation
 
-```
-Card Currency Converter/
-├── manifest.json
-├── src/
-│   ├── assets/flags/         # Country flag SVGs (flag-icons, MIT)
-│   ├── background/           # Service worker: context menu + conversion orchestration
-│   ├── content/              # Content script: price detection + hover tooltip
-│   ├── converter/            # Popup window launched on context conversions
-│   ├── data/                 # Static currency metadata
-│   ├── lib/                  # Shared utilities, storage helpers, Mastercard rate client
-│   ├── options/              # Extension options page
-│   └── popup/                # Browser action popup (manual conversions)
-├── tests/                    # node:test unit tests (price parser, Mastercard client)
-├── scripts/                  # check, build, Chrome Web Store upload, asset rendering
-├── store/                    # Chrome Web Store listing text and assets
-└── PRIVACY.md                # Privacy policy (required by the Chrome Web Store)
-```
-
-## Loading the Extension in Chrome
-
-1. Download `card-currency-converter-vX.Y.Z.zip` from the [latest release](https://github.com/isikerkan/Neon-Currency/releases/latest) and extract it (or clone this repository).
-2. Open Chrome and go to `chrome://extensions`.
-3. Enable **Developer mode** (top right toggle).
+1. Download `card-currency-converter-vX.Y.Z.zip` from the [latest release](https://github.com/isikerkan/Neon-Currency/releases/latest) and extract it.
+2. Open `chrome://extensions` in Chrome.
+3. Enable **Developer mode** (toggle top right).
 4. Click **Load unpacked** and select the extracted folder (the one containing `manifest.json`).
-5. Pin the extension so its popup is always reachable.
+5. Pin the extension via the puzzle icon in the toolbar.
 
-## CI/CD
+**Update:** extract the new release into the same folder and click the reload icon of the extension in `chrome://extensions`.
 
-| Workflow | Trigger | Steps |
-|----------|---------|-------|
-| `ci.yml` | Pull requests, pushes to `main` | `scripts/check.mjs` (JS syntax, manifest structure, referenced files, flags) → unit tests (`tests/`) → zip build as artifact |
-| `release.yml` | Tag `v*` or manual run (*Actions → Release → Run workflow*) | Same checks → zip → GitHub release with the zip → Chrome Web Store upload + submit for review (if configured) |
+## Setup
 
-Local equivalents (Node 22, no dependencies): `npm run check`, `npm test`, `npm run build`.
+Open the settings via right-click on the extension icon → **Options** (or the ⚙️ button in the popup).
 
-### Releasing
+| Setting | Description |
+|---------|-------------|
+| Main currency | Currency prices are converted into (default CHF). |
+| Quick currency shortcuts | Additional currencies shown in the price tooltip and as buttons in the popup. |
+| Preferred currencies for detection | Preferred when a selection contains several or ambiguous currency codes. |
+| Bank fee (%) | Your card's foreign-currency fee, added to every converted amount. |
+| Allow selecting conversion date | Enables a date field to convert with a historical rate. |
+| Default rate date | Pre-filled historical date (only when the option above is enabled). |
+| Show floating conversion when hovering a detected price | Turns the price tooltip on or off. |
+| Use Mastercard page in background if the direct request is blocked | If Mastercard blocks the direct rate request, the rate is fetched via the Mastercard converter page in a minimized window. |
+| Card currency | Pre-filled source currency in the popup. |
 
-1. Bump `version` in `manifest.json` (the Chrome Web Store rejects re-used versions) and merge to `main`.
-2. Push a matching tag (`git tag v0.3.1 && git push origin v0.3.1`) or run the *Release* workflow manually; the manual run tags the commit with `v<manifest version>`.
+Click **Save Settings**.
 
-### Chrome Web Store
+## Usage
 
-The first submission is manual; afterwards `release.yml` uploads every release via the [Chrome Web Store API v2](https://developer.chrome.com/docs/webstore/using-api).
+### Price tooltip
 
-1. Register a developer account at the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) (one-time fee).
-2. *New item* → upload the zip from the latest GitHub release. Fill in the listing, privacy tab and assets from [`store/LISTING.md`](store/LISTING.md); privacy policy: [`PRIVACY.md`](PRIVACY.md). Submit for review.
-3. Enable the API: Google Cloud project → enable *Chrome Web Store API* → OAuth consent screen → OAuth client (type *Desktop app*) → obtain a refresh token for scope `https://www.googleapis.com/auth/chromewebstore` ([guide](https://developer.chrome.com/docs/webstore/using-api)).
-4. GitHub → *Settings → Environments* → create `chrome-web-store` (optionally with required reviewers as manual gate) and add:
-   - Variables: `CWS_PUBLISHER_ID` (from the dashboard URL), `CWS_EXTENSION_ID` (item ID)
-   - Secrets: `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN`
+Move the mouse over a price on any website, e.g. `$19.99`, `€1.234,56`, `CHF 29.–` or `1 299,00 zł`. After a short moment a card shows:
 
-   Store variables can also be set as repository variables; the job only runs when `CWS_EXTENSION_ID` is set.
+- the detected price with its flag,
+- the amount in your main and quick currencies, including the bank fee,
+- the Mastercard rate date and the fee applied.
 
-## Configuring Settings
+Hover a row to see the exchange rate. The card closes when you move away, scroll or press `Esc`.
 
-Open the extension popup and click the ⚙️ button or visit the options page directly from `chrome://extensions`.
+`$`, `kr` and `¥` are resolved by the website's country (e.g. `$` on a `.ca` site → CAD).
 
-- **Main currency**: the default currency you want amounts converted into (CHF by default).
-- **Quick currency shortcuts**: currencies that appear as buttons inside the popup for one-click conversions.
-- **Preferred currencies**: prioritized list used when parsing selections that contain ambiguous currency codes.
-- **Bank fee (%)**: a surcharge applied to converted amounts to simulate your card issuer’s foreign-currency markup.
-- **Allow selecting conversion date**: toggles historical rate selection in the popup/converter interface.
+### Right-click conversion
 
-### Mastercard Rates (no API key)
+1. Select a price on a page.
+2. Right-click → **Convert price to card currency**.
+3. A small window shows rate, converted amount, fee and total. If the currency cannot be detected, enter amount and currency manually.
 
-Mastercard does not hand out keys for its Currency Conversion API to individuals. The extension therefore uses the same public endpoint that Mastercard's own [currency converter page](https://www.mastercard.com/ch/de/pers%C3%B6nlich/get-support/currency-exchange-rate-converter.html) calls:
+### Popup
 
-```
-GET https://www.mastercard.com/marketingservices/public/mccom-services/currency-conversions/conversion-rates
-    ?exchange_date=YYYY-MM-DD
-    &transaction_currency=USD
-    &cardholder_billing_currency=CHF
-    &bank_fee=0
-    &transaction_amount=1
-```
+1. Click the extension icon.
+2. Enter amount and source currency.
+3. Click one of your quick currency buttons. The last conversion is kept in the popup.
 
-Response (relevant fields):
+## Notes
 
-```json
-{ "data": { "conversionRate": 0.8012, "crdhldBillAmt": 0.8012, "fxDate": "2026-09-27", "transCurr": "USD", "crdhldBillCurr": "CHF" } }
-```
-
-The endpoint sits behind Akamai bot protection, so the service worker fetches it in two stages (`src/lib/mastercardClient.js`):
-
-1. **Direct request** from the service worker. `host_permissions` bypass CORS; a `declarativeNetRequest` session rule sets `Referer`/`Origin` to the converter page. Since the request comes from your real Chrome (browser TLS fingerprint, residential IP, Mastercard cookies), this usually passes.
-2. **Background page fallback** – if Akamai answers with 403 or an HTML challenge, the converter page is opened in a minimized window, the same request runs inside that page (`chrome.scripting.executeScript`, `world: "MAIN"`, same origin and cookies), and the window is closed afterwards. One window serves all target currencies of a conversion. Can be disabled in the options.
-
-Additional behaviour:
-
-- **Latest rate**: without an explicit date the client tries today and walks back up to 5 days until Mastercard returns a published rate. The date actually used is shown in the UI.
-- **Cache**: rates are cached in `chrome.storage.local` (`fxRateCache`) – the latest rate per pair for 30 minutes, dated rates indefinitely (max. 200 entries).
-- **Conversion** happens locally (`amount × conversionRate`); the bank fee from the options is applied afterwards by the service worker.
-
-> This is an undocumented endpoint of Mastercard's website, not an official API. Parameters or protection can change without notice; check the endpoint in the DevTools network tab of the converter page if requests start failing. Intended for personal use.
-
-## Usage Flow
-
-- **Hover tooltip**: move the mouse over a price (e.g. `$19.99`, `CHF 29.–`, `1 299,00 zł`). After ~350 ms a floating card shows the amount converted into your main and quick currencies, incl. bank fee and rate date. Hover a row for the exchange rate; `Esc` or scrolling closes it. Ambiguous symbols are resolved by the site's domain (`$` on `.ca` → CAD, `kr` on `.no` → NOK). Can be disabled in the options.
-- **Context menu conversion**: highlight a price (e.g., `€149.95`), right-click, and choose *Convert price to card currency*. A mini window opens showing the result. If the extension cannot determine the currency, you will be prompted to specify it manually.
-- **Popup conversion**: click the extension icon, type an amount and its currency, then hit one of your quick currency buttons. Results are shown instantly inside the popup and the last conversion is persisted for reference.
-
-## Development Notes
-
-- All scripts are standard ES modules; no bundler is required.
-- Files are written in plain JavaScript/HTML/CSS to keep the setup lightweight.
-- The extension relies on `chrome.storage.sync` for settings and `chrome.storage.local` for transient conversion data/history.
-- No external dependencies are required; if you need advanced UI components consider adding a build step or using Web Components.
-
-## Next Steps
-- Optional fallback to a second rate source (e.g. ECB) when Mastercard is unreachable.
-- Add automated tests (e.g., using Puppeteer) to verify context-menu flows.
-- Expand the currency list or source it from a maintained API if you need full ISO-4217 coverage.
+- Rates come from Mastercard's public currency converter; no API key or account is needed. If today's rate is not published yet, the most recent one is used and its date is shown.
+- Rates are cached for 30 minutes, so repeated conversions are instant.
+- The first conversion may briefly open a minimized Mastercard window (see the *Use Mastercard page in background* setting).
+- Privacy: only the currency pair and date are sent to Mastercard, never the amount or the page. Details in [PRIVACY.md](PRIVACY.md).
+- Not affiliated with or endorsed by Mastercard.
