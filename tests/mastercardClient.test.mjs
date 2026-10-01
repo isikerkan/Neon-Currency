@@ -93,6 +93,38 @@ test("walks back to the last published date and caches the latest rate", async (
   assert.deepEqual(calls, []);
 });
 
+test("walks back when a missing date is reported as HTTP 4xx with a JSON body", async () => {
+  const today = isoDaysAgo(0);
+  responder = ({ date }) =>
+    date === today
+      ? Response.json({ message: "Rate not available for date" }, { status: 400 })
+      : rateResponse(0.8, date);
+
+  const result = await convertAmounts({ amount: 10, sourceCurrency: "EUR", targetCurrencies: ["CHF"] }, settings);
+  assert.equal(result.rateDate, isoDaysAgo(1));
+  assert.equal(result.conversions[0].convertedAmount, 8);
+});
+
+test("falls back to the Mastercard page when the direct request gets HTTP 401", async () => {
+  responder = ({ via, date }) =>
+    via === "direct" ? new Response("Unauthorized", { status: 401 }) : rateResponse(1.1, date);
+
+  const result = await convertAmounts(
+    { amount: 10, sourceCurrency: "SEK", targetCurrencies: ["CHF"], rateDate: "2026-09-03" },
+    settings
+  );
+  assert.equal(result.metadata.transport, "page");
+  assert.equal(result.conversions[0].convertedAmount, 11);
+});
+
+test("reports status and body when the page request is rejected too", async () => {
+  responder = () => new Response("<html><body>Unauthorized</body></html>", { status: 401 });
+  await assert.rejects(
+    convertAmounts({ amount: 1, sourceCurrency: "NOK", targetCurrencies: ["CHF"], rateDate: "2026-09-04" }, settings),
+    /HTTP 401\): Unauthorized/
+  );
+});
+
 test("falls back to the Mastercard page when Akamai blocks direct requests", async () => {
   responder = ({ via, target, date }) =>
     via === "direct" ? new Response("<HTML>Access Denied</HTML>", { status: 403 }) : rateResponse(target === "CHF" ? 1.1 : 1.2, date);
