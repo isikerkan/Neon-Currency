@@ -255,29 +255,43 @@ async function requestInPage(tabId, url) {
   return parsed;
 }
 
-// HTTP statuses Akamai / the edge uses to reject requests that do not look like they come
-// from Mastercard's own page. These trigger the page fallback.
+// HTTP statuses Akamai / the edge uses (with an HTML body) to reject requests that do not
+// look like they come from Mastercard's own page. These trigger the page fallback.
 const BLOCKED_STATUSES = new Set([401, 403, 407, 429]);
 
 function parseResponse(status, text) {
-  const looksLikeJson = /^\s*[{[]/.test(text);
   const detail = summarizeBody(text);
-  if (BLOCKED_STATUSES.has(status) || (status === 200 && !looksLikeJson)) {
-    return { ok: false, blocked: true, error: `Mastercard blocked the request (HTTP ${status})${detail}.` };
+  let json = null;
+  if (/^\s*[{[]/.test(text)) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = null;
+    }
   }
-  if (status >= 400 && status < 500 && looksLikeJson) {
-    // Business errors (e.g. no rate published for that date) may come as 4xx with a JSON
-    // body. Report them as data errors so the date walk-back keeps going.
-    return { ok: false, blocked: false, dataError: true, error: `Mastercard rejected the request (HTTP ${status})${detail}.` };
-  }
-  if (status < 200 || status >= 300) {
+
+  if (json) {
+    if (status >= 200 && status < 300) {
+      return { ok: true, json };
+    }
+    if (status >= 400 && status < 500) {
+      // The API itself answered, e.g. 401 "Rate is not accessible for this date" for a day
+      // that is not published yet. A data error, not a block: the date walk-back continues.
+      const reason = json?.data?.errorMessage || json?.errorMessage || json?.message;
+      return {
+        ok: false,
+        blocked: false,
+        dataError: true,
+        error: reason ? `Mastercard: ${reason} (HTTP ${status})` : `Mastercard rejected the request (HTTP ${status})${detail}.`
+      };
+    }
     return { ok: false, blocked: false, error: `Mastercard request failed with HTTP ${status}${detail}.` };
   }
-  try {
-    return { ok: true, json: JSON.parse(text) };
-  } catch {
-    return { ok: false, blocked: true, error: `Mastercard returned an unreadable response${detail}.` };
+
+  if (BLOCKED_STATUSES.has(status) || (status >= 200 && status < 300)) {
+    return { ok: false, blocked: true, error: `Mastercard blocked the request (HTTP ${status})${detail}.` };
   }
+  return { ok: false, blocked: false, error: `Mastercard request failed with HTTP ${status}${detail}.` };
 }
 
 function summarizeBody(text) {
