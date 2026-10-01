@@ -59,14 +59,19 @@ Additional behaviour:
 | Workflow | Trigger | Steps |
 |----------|---------|-------|
 | `ci.yml` | Pull requests, pushes to `main` | `scripts/check.mjs` (JS syntax, manifest structure, referenced files, flags) → unit tests (`tests/`) → zip build as artifact |
-| `release.yml` | Tag `v*` or manual run (*Actions → Release → Run workflow*) | Same checks → zip → GitHub release with the zip → Chrome Web Store upload + submit for review (if configured) |
+| `release.yml` | Every push/merge to `main`, tag `v*`, or manual run | Version bump if needed → same checks → zip → GitHub release with the zip → Chrome Web Store upload + submit for review (if configured) |
 
 Local equivalents (Node 22, no dependencies): `npm run check`, `npm test`, `npm run build`.
 
 ### Releasing
 
-1. Bump `version` in `manifest.json` (the Chrome Web Store rejects re-used versions) and merge to `main`.
-2. Push a matching tag (`git tag v0.3.1 && git push origin v0.3.1`) or run the *Release* workflow manually; the manual run tags the commit with `v<manifest version>`.
+Every merged PR is released automatically:
+
+- If `v<manifest version>` is already released, `release.yml` bumps the patch version (e.g. 0.3.2 → 0.3.3), commits `Release vX.Y.Z [skip ci]` to `main` and releases that commit.
+- If a PR raises the version itself (e.g. to 0.4.0 for a feature), exactly that version is released.
+- Releases are serialized (`concurrency: release`); the bump commit does not trigger CI or another release.
+
+Manual alternatives: push a tag matching the manifest version, or run *Actions → Release → Run workflow*.
 
 ### Chrome Web Store
 
