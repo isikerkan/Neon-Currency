@@ -1,11 +1,16 @@
 name: Release
 
-# Runs on a pushed v* tag, or manually (Actions → Release → Run workflow):
-# the manual run tags the selected commit with v<manifest version>.
+# Runs after every merge to main, on a pushed v* tag, or manually
+# (Actions → Release → Run workflow).
+# On main / manual runs: if v<manifest version> is already released, the patch version
+# is bumped and committed to main ("Release vX.Y.Z [skip ci]"), then that commit is tagged.
+# A PR that bumps the version itself is released with exactly that version.
 # After the GitHub release, the zip is uploaded to the Chrome Web Store when the
-# CWS_* variables/secrets are configured (see README → Chrome Web Store).
+# CWS_* variables/secrets are configured (see docs/DEVELOPMENT.md → Chrome Web Store).
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
   workflow_dispatch:
@@ -18,28 +23,56 @@ on:
 permissions:
   contents: write
 
+# Serialize releases so two quick merges cannot claim the same version.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.tag.outputs.tag }}
+      sha: ${{ steps.tag.outputs.sha }}
       zip: ${{ steps.build.outputs.zip }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Branch tip, not the triggering commit: a later merge may already be on main.
+          ref: ${{ github.ref_type == 'branch' && github.ref_name || github.ref }}
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Resolve tag
+      - name: Resolve version (bump patch if already released)
         id: tag
         run: |
-          manifest_tag="v$(jq -r .version manifest.json)"
-          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "${manifest_tag}" ]; then
-            echo "manifest.json version ${manifest_tag} does not match tag ${GITHUB_REF_NAME}" >&2
-            exit 1
+          version=$(jq -r .version manifest.json)
+
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+              echo "manifest.json version v${version} does not match tag ${GITHUB_REF_NAME}" >&2
+              exit 1
+            fi
+          elif git rev-parse -q --verify "refs/tags/v${version}" >/dev/null; then
+            version=$(node -e '
+              const parts = process.argv[1].split(".").map(Number);
+              while (parts.length < 3) parts.push(0);
+              parts[parts.length - 1] += 1;
+              console.log(parts.join("."));
+            ' "${version}")
+            jq --arg v "${version}" '.version = $v' manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -am "Release v${version} [skip ci]"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+            echo "Bumped manifest.json to ${version}"
           fi
-          echo "tag=${manifest_tag}" >> "$GITHUB_OUTPUT"
+
+          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Static checks
         run: node scripts/check.mjs
@@ -70,10 +103,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ needs.build.outputs.tag }}
+          SHA: ${{ needs.build.outputs.sha }}
         run: |
           gh release create "${TAG}" dist/*.zip \
             --repo "${GITHUB_REPOSITORY}" \
-            --target "${GITHUB_SHA}" \
+            --target "${SHA}" \
             --title "Card Currency Converter ${TAG}" \
             --generate-notes
 
