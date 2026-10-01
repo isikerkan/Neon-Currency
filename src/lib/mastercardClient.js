@@ -158,6 +158,9 @@ function createFetcher({ allowTabFallback }) {
         if (direct.ok) {
           return direct.json;
         }
+        if (direct.dataError) {
+          throw new Error(direct.error);
+        }
         if (!direct.blocked) {
           throw new TransportError(direct.error);
         }
@@ -174,6 +177,9 @@ function createFetcher({ allowTabFallback }) {
       const tabId = await pagePromise;
       fetcher.usedTab = true;
       const viaPage = await requestInPage(tabId, url);
+      if (viaPage.dataError) {
+        throw new Error(viaPage.error);
+      }
       if (!viaPage.ok) {
         throw new TransportError(viaPage.error);
       }
@@ -243,25 +249,40 @@ async function requestInPage(tabId, url) {
   if (!parsed.ok && parsed.blocked) {
     return {
       ok: false,
-      error: "Mastercard rejected the request even from its own page. Open the Mastercard converter once in a normal tab and retry."
+      error: `${parsed.error} Mastercard rejected the request even from its own page. Open the Mastercard converter once in a normal tab and retry.`
     };
   }
   return parsed;
 }
 
+// HTTP statuses Akamai / the edge uses to reject requests that do not look like they come
+// from Mastercard's own page. These trigger the page fallback.
+const BLOCKED_STATUSES = new Set([401, 403, 407, 429]);
+
 function parseResponse(status, text) {
   const looksLikeJson = /^\s*[{[]/.test(text);
-  if (status === 403 || status === 429 || (!looksLikeJson && status === 200)) {
-    return { ok: false, blocked: true, error: `Mastercard blocked the request (HTTP ${status}).` };
+  const detail = summarizeBody(text);
+  if (BLOCKED_STATUSES.has(status) || (status === 200 && !looksLikeJson)) {
+    return { ok: false, blocked: true, error: `Mastercard blocked the request (HTTP ${status})${detail}.` };
+  }
+  if (status >= 400 && status < 500 && looksLikeJson) {
+    // Business errors (e.g. no rate published for that date) may come as 4xx with a JSON
+    // body. Report them as data errors so the date walk-back keeps going.
+    return { ok: false, blocked: false, dataError: true, error: `Mastercard rejected the request (HTTP ${status})${detail}.` };
   }
   if (status < 200 || status >= 300) {
-    return { ok: false, blocked: false, error: `Mastercard request failed with HTTP ${status}.` };
+    return { ok: false, blocked: false, error: `Mastercard request failed with HTTP ${status}${detail}.` };
   }
   try {
     return { ok: true, json: JSON.parse(text) };
   } catch {
-    return { ok: false, blocked: true, error: "Mastercard returned an unreadable response." };
+    return { ok: false, blocked: true, error: `Mastercard returned an unreadable response${detail}.` };
   }
+}
+
+function summarizeBody(text) {
+  const compact = (text || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return compact ? `: ${compact.slice(0, 120)}` : "";
 }
 
 async function openMastercardPage() {
