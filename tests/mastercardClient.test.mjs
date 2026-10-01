@@ -105,7 +105,24 @@ test("walks back when a missing date is reported as HTTP 4xx with a JSON body", 
   assert.equal(result.conversions[0].convertedAmount, 8);
 });
 
-test("falls back to the Mastercard page when the direct request gets HTTP 401", async () => {
+test("walks back when Mastercard answers 401 'Rate is not accessible for this date'", async () => {
+  const today = isoDaysAgo(0);
+  responder = ({ date }) =>
+    date === today
+      ? Response.json(
+          { data: { errorCode: "401", errorMessage: "Unauthorized access , Rate is not accessible for this date" } },
+          { status: 401 }
+        )
+      : rateResponse(0.95, date);
+
+  const result = await convertAmounts({ amount: 100, sourceCurrency: "EUR", targetCurrencies: ["CHF"] }, settings);
+  assert.equal(result.rateDate, isoDaysAgo(1));
+  assert.equal(result.conversions[0].convertedAmount, 95);
+  assert.equal(result.metadata.transport, "direct", "a JSON 401 must not trigger the page fallback");
+  assert.equal(calls.filter((c) => c === "window:open").length, 0);
+});
+
+test("falls back to the Mastercard page when the direct request gets an HTML 401", async () => {
   responder = ({ via, date }) =>
     via === "direct" ? new Response("Unauthorized", { status: 401 }) : rateResponse(1.1, date);
 
